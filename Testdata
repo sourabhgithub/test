@@ -1,0 +1,119 @@
+"employmentHistory": [
+                {
+                    "asOfDate": "08172021",
+                    "originReportId": "6717a1db-5a32-4da9-a348-79c184a6fd5b",
+                    "originSourceId": "00A",
+                    "employerIdentificationNumber": "453246125",
+                    "employerName": "Staffsmart Medical Placement Group",
+                    "employerAddress": {
+                        "lineOne": "52 EEE R",
+                        "lineTwo": null,
+                        "lineThree": null,
+                        "cityName": "MDN",
+                        "state": "OH",
+                        "countryCode": "US",
+                        "postalCode": "99999"
+                    },
+                    "employmentInformation": [
+                        {
+                            "originalHireDate": "12022012",
+                            "mostRecentHireDate": "01022019",
+                            "positionEndDate": null,
+                            "positionTenure": "P2Y7M15D",
+                            "positionTitle": "Vice President",
+                            "employmentStatus": {
+                                "code": "F",
+                                "name": "Full Time"
+                            },
+                            "workStatus": {
+                                "code": "A",
+                                "name": "Active"
+                            }
+                        }
+                    ],
+                    "employerDisclaimers": null
+                },
+                {
+                    "asOfDate": "08172021",
+                    "originReportId": "6717a1db-5a32-4da9-a348-79c184a6fd5b",
+                    "originSourceId": "00A",
+                    "employerIdentificationNumber": "832856109",
+                    "employerName": "Secured Resolutions LLC",
+                    "employerAddress": {
+                        "lineOne": "98 we elyD",
+                        "lineTwo": null,
+                        "lineThree": null,
+                        "cityName": "Ceeed",
+                        "state": "OH",
+                        "countryCode": "US",
+                        "postalCode": "99999"
+                    },
+                    "employmentInformation": [
+                        {
+                            "originalHireDate": "12022016",
+                            "mostRecentHireDate": "01312021",
+                            "positionEndDate": null,
+                            "positionTenure": "P0Y6M17D",
+                            "positionTitle": "Sr. Sales Consultant",
+                            "employmentStatus": {
+                                "code": "F",
+                                "name": "Full Time"
+                            },
+                            "workStatus": {
+                                "code": "A",
+                                "name": "Active"
+                            }
+                        },
+                        {
+                            "originalHireDate": "12022016",
+                            "mostRecentHireDate": "12022016",
+                            "positionEndDate": null,
+                            "positionTenure": "P4Y8M15D",
+                            "positionTitle": "Sales Consultant",
+                            "employmentStatus": {
+                                "code": "F",
+                                "name": "Full Time"
+                            },
+                            "workStatus": {
+                                "code": "A",
+                                "name": "Active"
+                            }
+                        }
+                    ],
+                    "employerDisclaimers": null
+                },
+                {
+                    "asOfDate": "08172021",
+                    "originReportId": "6717a1db-5a32-4da9-a348-79c184a6fd5b",
+                    "originSourceId": "00A",
+                    "employerIdentificationNumber": "900347130",
+                    "employerName": "Belle Meade Plantation",
+                    "employerAddress": {
+                        "lineOne": "66 uc ldSe33",
+                        "lineTwo": null,
+                        "lineThree": null,
+                        "cityName": "Clmu",
+                        "state": "OH",
+                        "countryCode": "US",
+                        "postalCode": "99999"
+                    },
+                    "employmentInformation": [
+                        {
+                            "originalHireDate": "03312018",
+                            "mostRecentHireDate": "03312018",
+                            "positionEndDate": "12312018",
+                            "positionTenure": "P0Y9M0D",
+                            "positionTitle": "Client Executive",
+                            "employmentStatus": {
+                                "code": "F",
+                                "name": "Full Time"
+                            },
+                            "workStatus": {
+                                "code": "I",
+                                "name": "Inactive"
+                            }
+                        }
+                    ],
+                    "employerDisclaimers": null
+                }
+            ]
