@@ -1,0 +1,30 @@
+POST /api/core/v1/end-users HTTP/1.1
+Host: {{ENV}}
+X-Application-ID: 1
+X-Correlation-Id: 02a09343-e999-46ef-a139-f25fe97744b8
+X-tenant-ID: 1
+X-Request-Id: APP_REQUEST_ID
+Authorization: {{authtoken}}
+X-OAuth-Username: test
+Cache-Control: no-cache
+Postman-Token: e2276ec1-7259-aaec-39e9-80a6da7b92e2
+
+{
+  "address": {
+    "city": "{{randomCity}}",
+    "state": "{{$randomCountryCode}}",
+    "street1": "{{$randomStreetName}}",
+    "street2": "{{$randomStreetName}}",
+    "zip": "{{randomZip}}"
+  },
+  "applicationEndUserId": "{{applicationEndUserId}}",
+  "dob": "{{randomDateOfBirth}}",
+  "email": "{{$randomEmail}}",
+  "generationCode": "{{userGenerationCode}}",
+  "firstName": "{{$randomFirstName}}",
+  "middleName": "{{randomMiddleName}}",
+  "fullName": "{{$randomFirstName}} {{randomMiddleName}} {{$randomLastName}}",
+  "lastName": "{{$randomLastName}}",
+  "phone": "{{$randomPhoneNumber}}",
+  "ssn": "{{randomSsn}}"
+}
