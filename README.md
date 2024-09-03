@@ -21,3 +21,4 @@ To activate the custom filter, you need to register it in your Spring Security c
     planation of SecurityConfig:
 @EnableWebSecurity: Enables Spring Security’s web security support and provides the Spring MVC integration.
 addFilterBefore(...): Registers the IpRestrictionFilter to run before the UsernamePasswordAuthenticationFilter. This ensures the IP check happens before any authentication logic.
+public class IpRestrictionFilter extends OncePerRequestFilter {
