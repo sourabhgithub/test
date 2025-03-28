@@ -19,16 +19,28 @@ class DecryptIdPasswordFileTest {
 
     @BeforeEach
     void setUp() {
+        // Set the environment variable for the test
+        System.setProperty("env", "C:\\Cash\\cash_core");
+
         MockitoAnnotations.openMocks(this);  // Initialize mocks
+
+        // Mock the file location and behavior of getFile method
+        File mockFile = mock(File.class);
+        when(encryptIdPasswordFile.getFile(anyString(), anyString())).thenReturn(mockFile);
+        
+        // Mock file.exists() to control file existence behavior
+        when(mockFile.exists()).thenReturn(true); // You can change this to false for other tests
+
+        // Initialize the DecryptIdPasswordFile with mocked file and environment
         decryptIdPasswordFile = new DecryptIdPasswordFile("env", "fileName");
     }
 
     @Test
     void testConstructor_FileNotFound() throws Exception {
-        // Arrange: Mocking the behavior of getFile and exists
+        // Arrange: Mocking the behavior of getFile and exists to simulate file not found
         File mockFile = mock(File.class);
         when(encryptIdPasswordFile.getFile("env", "fileName")).thenReturn(mockFile);
-        when(mockFile.exists()).thenReturn(false);
+        when(mockFile.exists()).thenReturn(false); // Simulate file not found
 
         // Act & Assert: Test if exception is thrown when file is not found
         Exception exception = assertThrows(Exception.class, () -> {
@@ -40,10 +52,10 @@ class DecryptIdPasswordFileTest {
 
     @Test
     void testConstructor_Success() throws Exception {
-        // Arrange: Mocking the behavior of getFile and exists
+        // Arrange: Mocking the behavior of getFile and exists to simulate file found
         File mockFile = mock(File.class);
         when(encryptIdPasswordFile.getFile("env", "fileName")).thenReturn(mockFile);
-        when(mockFile.exists()).thenReturn(true);
+        when(mockFile.exists()).thenReturn(true); // Simulate file found
 
         // Act: Initialize the object
         decryptIdPasswordFile = new DecryptIdPasswordFile("env", "fileName");
@@ -54,7 +66,7 @@ class DecryptIdPasswordFileTest {
 
     @Test
     void testGetUserName() throws Exception {
-        // Arrange: Mocking the data
+        // Arrange: Mocking the data for getUserName()
         Container mockData = mock(Container.class);
         when(decryptIdPasswordFile.getUserName()).thenReturn("mockUser");
 
@@ -67,7 +79,7 @@ class DecryptIdPasswordFileTest {
 
     @Test
     void testGetPassword() throws Exception {
-        // Arrange: Mocking the data
+        // Arrange: Mocking the data for getPassword()
         Container mockData = mock(Container.class);
         when(decryptIdPasswordFile.getPassword()).thenReturn("mockPassword");
 
