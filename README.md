@@ -1,86 +1,97 @@
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+package com.discover.website.apply.transformer;
 
-public class AssertEventually {
+import com.discover.website.apply.model.ApplicationFormData; import com.discover.website.apply.model.CombinedAddress; import com.discover.website.apply.model.Address; import com.discover.website.apply.model.Indicators; import com.discover.website.apply.model.LobResponse; import com.fasterxml.jackson.databind.DeserializationFeature; import com.fasterxml.jackson.databind.ObjectMapper; import lombok.AllArgsConstructor; import lombok.SneakyThrows; import lombok.extern.slf4j.Slf4j; import org.springframework.beans.factory.annotation.Qualifier; import org.springframework.stereotype.Component;
 
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+import java.util.Optional;
 
-    public static void assertEventually(final Callback callback) {
-        AtomicInteger numberOfTries = new AtomicInteger(0);
-        long waitTimeInMilliseconds = 750L;
-        AssertionError error = new AssertionError();
+@Component @Qualifier("combinedAddressTransformer") @AllArgsConstructor @Slf4j public class ApplicationFormToCombinedAddressTransformer implements Transformer<ApplicationFormData, CombinedAddress> {
 
-        // Create a retry task
-        Runnable retryTask = new Runnable() {
-            @Override
-            public void run() {
-                if (numberOfTries.get() < 5) {
-                    try {
-                        callback.apply(); // Try executing the callback
-                        return; // Success, exit the method
-                    } catch (AssertionError assertionError) {
-                        error.setMessage(assertionError.getMessage());
-                        numberOfTries.incrementAndGet(); // Increment retry count
-                    }
+private final ObjectMapper objectMapper;
 
-                    // Schedule next retry with an exponential backoff
-                    scheduler.schedule(this, waitTimeInMilliseconds, TimeUnit.MILLISECONDS);
-                    waitTimeInMilliseconds *= 2; // Double the wait time for the next retry
-                } else {
-                    // If retries exhausted, throw the last captured error
-                    throw new AssertionError("Max retries reached: " + error.getMessage());
-                }
-            }
-        };
+@Override
+@SneakyThrows
+public CombinedAddress transform(final ApplicationFormData data) {
+    log.info("lobAttestationEnabled flag is set to: {}. Transforming address to be sent to PET.",
+             data.isLobAttestationEnabled());
 
-        // Initial call to start the retry process
-        retryTask.run();
+    boolean sameMailing = data.getIsHomeAddressMailingAddress() == YesOrNo.Yes;
+    LobResponse primaryLob = mapLobResponse(data, false);
+    LobResponse mailingLob = sameMailing ? null : mapLobResponse(data, true);
+
+    CombinedAddress.CombinedAddressBuilder builder = CombinedAddress.builder()
+        .lobResponse(Optional.ofNullable(primaryLob))
+        .physical(buildPhysicalAddress(data, primaryLob))
+        .attributes(buildIndicators(data, primaryLob))
+        .deliverability(Optional.ofNullable(data.getDeliverability()))
+        .recordType(extract(() -> primaryLob.getComponents().getRecordType()))
+        .dpvFootnotes(extract(() -> primaryLob.getDeliverabilityAnalysis().getDpvFootnotes()))
+        .pmbDesignator(extract(() -> primaryLob.getComponents().getPmbDesignator()))
+        .pmbNumber(extract(() -> primaryLob.getComponents().getPmbNumber()));
+
+    if (!sameMailing) {
+        builder
+            .mailingLobResponse(Optional.ofNullable(mailingLob))
+            .mailingAddress(buildMailingAddress(data, mailingLob));
     }
 
-    public static void modularAssertEventually(final Callback callback) {
-        AtomicInteger numberOfTries = new AtomicInteger(0);
-        long waitTimeInMilliseconds = 750L;
-        AssertionError error = new AssertionError();
+    return builder.build();
+}
 
-        // Create a retry task
-        Runnable retryTask = new Runnable() {
-            @Override
-            public void run() {
-                if (numberOfTries.get() < 5) {
-                    try {
-                        callback.apply(); // Try executing the callback
-                        return; // Success, exit the method
-                    } catch (AssertionError assertionError) {
-                        error.setMessage(assertionError.getMessage());
-                        numberOfTries.incrementAndGet(); // Increment retry count
-                    }
+private Address buildPhysicalAddress(ApplicationFormData data, LobResponse lob) {
+    return Address.builder()
+            .city(data.getCity())
+            .addressLine1(data.getAddressLine1())
+            .addressLine2(data.getUnitNumber())
+            .unitNumber(data.getUnitNumber())
+            .zipCode(data.getZipCode())
+            .state(data.getState())
+            .indicators(buildIndicators(data, lob))
+            .build();
+}
 
-                    // Schedule next retry with an exponential backoff
-                    scheduler.schedule(this, waitTimeInMilliseconds, TimeUnit.MILLISECONDS);
-                    waitTimeInMilliseconds *= 2; // Double the wait time for the next retry
-                } else {
-                    // If retries exhausted, throw the last captured error
-                    throw new AssertionError("Max retries reached: " + error.getMessage());
-                }
-            }
-        };
+private Address buildMailingAddress(ApplicationFormData data, LobResponse lob) {
+    return Address.builder()
+            .city(data.getMailingCity())
+            .addressLine1(data.getMailingAddressLine1())
+            .addressLine2(data.getMailingUnitNumber())
+            .unitNumber(data.getMailingUnitNumber())
+            .zipCode(data.getMailingZipCode())
+            .state(data.getMailingState())
+            .indicators(buildMailingIndicators(data, lob))
+            .build();
+}
 
-        // Initial call to start the retry process
-        retryTask.run();
-    }
+private Indicators buildIndicators(ApplicationFormData data, LobResponse lob) {
+    return Indicators.builder()
+            .lobAddrValidInd(Optional.ofNullable(data.getLobAddrValidInd()))
+            .addrAttestationInd(Optional.ofNullable(data.getAddrAttestationInd()))
+            .build();
+}
 
-    // Example Callback functional interface
-    @FunctionalInterface
-    public interface Callback {
-        void apply() throws AssertionError;
-    }
+private Indicators buildMailingIndicators(ApplicationFormData data, LobResponse lob) {
+    return Indicators.builder()
+            .lobAddrValidInd(Optional.ofNullable(data.getMailingLobAddrValidInd()))
+            .addrAttestationInd(Optional.ofNullable(data.getMailingAddrAttestationInd()))
+            .build();
+}
 
-    public static void main(String[] args) {
-        // Example usage
-        assertEventually(() -> {
-            // Your callback code here (throw an exception to simulate failure)
-            System.out.println("Attempting operation...");
-            throw new AssertionError("Operation failed");
-        });
+private <T> Optional<T> extract(Supplier<T> supplier) {
+    try {
+        return Optional.ofNullable(supplier.get());
+    } catch (NullPointerException e) {
+        return Optional.empty();
     }
 }
+
+@SneakyThrows
+private LobResponse mapLobResponse(ApplicationFormData data, boolean mailing) {
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    String json = mailing ? data.getMailingLobResponse() : data.getLobResponse();
+    if (json == null || json.isEmpty()) {
+        return null;
+    }
+    return objectMapper.readValue(json, LobResponse.class);
+}
+
+}
+
