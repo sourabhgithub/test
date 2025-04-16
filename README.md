@@ -1,92 +1,86 @@
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
+public class AssertEventually {
 
-import java.io.File;
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-class DecryptIdPasswordFileTest {
+    public static void assertEventually(final Callback callback) {
+        AtomicInteger numberOfTries = new AtomicInteger(0);
+        long waitTimeInMilliseconds = 750L;
+        AssertionError error = new AssertionError();
 
-    @Mock
-    private EncryptIdPasswordFile encryptIdPasswordFile;
+        // Create a retry task
+        Runnable retryTask = new Runnable() {
+            @Override
+            public void run() {
+                if (numberOfTries.get() < 5) {
+                    try {
+                        callback.apply(); // Try executing the callback
+                        return; // Success, exit the method
+                    } catch (AssertionError assertionError) {
+                        error.setMessage(assertionError.getMessage());
+                        numberOfTries.incrementAndGet(); // Increment retry count
+                    }
 
-    @Mock
-    private Decrypt decrypt;
+                    // Schedule next retry with an exponential backoff
+                    scheduler.schedule(this, waitTimeInMilliseconds, TimeUnit.MILLISECONDS);
+                    waitTimeInMilliseconds *= 2; // Double the wait time for the next retry
+                } else {
+                    // If retries exhausted, throw the last captured error
+                    throw new AssertionError("Max retries reached: " + error.getMessage());
+                }
+            }
+        };
 
-    private DecryptIdPasswordFile decryptIdPasswordFile;
-
-    @BeforeEach
-    void setUp() {
-        // Set the environment variable for the test
-        System.setProperty("env", "C:\\Cash\\cash_core");
-
-        MockitoAnnotations.openMocks(this);  // Initialize mocks
-
-        // Mock the file location and behavior of getFile method
-        File mockFile = mock(File.class);
-        when(encryptIdPasswordFile.getFile(anyString(), anyString())).thenReturn(mockFile);
-        
-        // Mock file.exists() to control file existence behavior
-        when(mockFile.exists()).thenReturn(true); // You can change this to false for other tests
-
-        // Initialize the DecryptIdPasswordFile with mocked file and environment
-        decryptIdPasswordFile = new DecryptIdPasswordFile("env", "fileName");
+        // Initial call to start the retry process
+        retryTask.run();
     }
 
-    @Test
-    void testConstructor_FileNotFound() throws Exception {
-        // Arrange: Mocking the behavior of getFile and exists to simulate file not found
-        File mockFile = mock(File.class);
-        when(encryptIdPasswordFile.getFile("env", "fileName")).thenReturn(mockFile);
-        when(mockFile.exists()).thenReturn(false); // Simulate file not found
+    public static void modularAssertEventually(final Callback callback) {
+        AtomicInteger numberOfTries = new AtomicInteger(0);
+        long waitTimeInMilliseconds = 750L;
+        AssertionError error = new AssertionError();
 
-        // Act & Assert: Test if exception is thrown when file is not found
-        Exception exception = assertThrows(Exception.class, () -> {
-            decryptIdPasswordFile = new DecryptIdPasswordFile("env", "fileName");
+        // Create a retry task
+        Runnable retryTask = new Runnable() {
+            @Override
+            public void run() {
+                if (numberOfTries.get() < 5) {
+                    try {
+                        callback.apply(); // Try executing the callback
+                        return; // Success, exit the method
+                    } catch (AssertionError assertionError) {
+                        error.setMessage(assertionError.getMessage());
+                        numberOfTries.incrementAndGet(); // Increment retry count
+                    }
+
+                    // Schedule next retry with an exponential backoff
+                    scheduler.schedule(this, waitTimeInMilliseconds, TimeUnit.MILLISECONDS);
+                    waitTimeInMilliseconds *= 2; // Double the wait time for the next retry
+                } else {
+                    // If retries exhausted, throw the last captured error
+                    throw new AssertionError("Max retries reached: " + error.getMessage());
+                }
+            }
+        };
+
+        // Initial call to start the retry process
+        retryTask.run();
+    }
+
+    // Example Callback functional interface
+    @FunctionalInterface
+    public interface Callback {
+        void apply() throws AssertionError;
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        assertEventually(() -> {
+            // Your callback code here (throw an exception to simulate failure)
+            System.out.println("Attempting operation...");
+            throw new AssertionError("Operation failed");
         });
-
-        assertTrue(exception.getMessage().contains("Unable to find"));
-    }
-
-    @Test
-    void testConstructor_Success() throws Exception {
-        // Arrange: Mocking the behavior of getFile and exists to simulate file found
-        File mockFile = mock(File.class);
-        when(encryptIdPasswordFile.getFile("env", "fileName")).thenReturn(mockFile);
-        when(mockFile.exists()).thenReturn(true); // Simulate file found
-
-        // Act: Initialize the object
-        decryptIdPasswordFile = new DecryptIdPasswordFile("env", "fileName");
-
-        // Assert: Check if the object is correctly initialized
-        assertNotNull(decryptIdPasswordFile);
-    }
-
-    @Test
-    void testGetUserName() throws Exception {
-        // Arrange: Mocking the data for getUserName()
-        Container mockData = mock(Container.class);
-        when(decryptIdPasswordFile.getUserName()).thenReturn("mockUser");
-
-        // Act: Call the method
-        String userName = decryptIdPasswordFile.getUserName();
-
-        // Assert: Check if the correct username is returned
-        assertEquals("mockUser", userName);
-    }
-
-    @Test
-    void testGetPassword() throws Exception {
-        // Arrange: Mocking the data for getPassword()
-        Container mockData = mock(Container.class);
-        when(decryptIdPasswordFile.getPassword()).thenReturn("mockPassword");
-
-        // Act: Call the method
-        String password = decryptIdPasswordFile.getPassword();
-
-        // Assert: Check if the correct password is returned
-        assertEquals("mockPassword", password);
     }
 }
